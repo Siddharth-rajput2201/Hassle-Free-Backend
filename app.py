@@ -46,13 +46,18 @@ def fetch_all_data():
 
 @app.route('/register' ,methods =['POST'])
 def register():
-   NAME = request.form['USER_NAME']
-   PASSWORD = request.form['USER_PASSWORD']
-   mycursor.execute("insert into Hassle_Free_Register(USERNAME,PASSWORD) values('{USER_NAME}','{USER_PASSWORD}');".format(USER_NAME = NAME,USER_PASSWORD = PASSWORD))
-   data = mycursor.fetchall()
-   mydb.commit()
-   return jsonify(data)
-   # print("insert into Hassle_Free_Register values ('{USER_NAME}','{USER_PASSWORD}');".format(USER_NAME = NAME,USER_PASSWORD = PASSWORD))
+   try:
+      NAME = request.form['USER_NAME']
+      PASSWORD = request.form['USER_PASSWORD']
+      if(len(NAME)==0):
+         raise ValueError("USERNAME CANNOT BE EMPTY")
+      if(len(PASSWORD)<=8):
+         raise ValueError("PASSWORD LENGTH TOO SHORT")
+      mycursor.execute("insert into Hassle_Free_Register(USERNAME,PASSWORD) values('{USER_NAME}','{USER_PASSWORD}');".format(USER_NAME = NAME,USER_PASSWORD = PASSWORD))
+      mydb.commit()
+      return jsonify("REGISTERED SUCCESSFULLY")
+   except Exception as error:
+      return jsonify(str(error))
 
 if __name__ == '__main__':
    app.run()
