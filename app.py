@@ -5,6 +5,12 @@ from flask import Flask, json, request , jsonify
 import jwt
 from functools import wraps
 import datetime
+import bcrypt
+from cryptography.fernet import Fernet
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 load_dotenv()
 SQL_PASSWORD = os.getenv('PASSWORD')
@@ -52,23 +58,29 @@ def register():
       NAME = request.form['USER_NAME']
       PASSWORD = request.form['USER_PASSWORD']
       if(len(NAME)==0):
-         raise ValueError("USERNAME CANNOT BE EMPTY")
+         return jsonify({"message" :"USERNAME CANNOT BE EMPTY"}),400
       if(len(PASSWORD)<=8):
-         raise ValueError("PASSWORD LENGTH TOO SHORT")
+         return jsonify({"message" :"PASSWORD LENGTH TOO SHORT"}),400
       if(len(PASSWORD)>=30):
-         raise ValueError("PASSWORD LENGTH TOO LONG")
-      mycursor.execute("insert into Hassle_Free_Register(USERNAME,PASSWORD) values('{USER_NAME}','{USER_PASSWORD}');".format(USER_NAME = NAME,USER_PASSWORD = PASSWORD))
-      mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}' and PASSWORD = '{USER_PASSWORD}';".format(USER_NAME = NAME,USER_PASSWORD = PASSWORD))
+         return jsonify({"message" :"PASSWORD LENGTH TOO LONG"}),400
+      HASHEDPASS = bcrypt.hashpw(PASSWORD.encode('utf-8'),bcrypt.gensalt())    
+      mycursor.execute("insert into Hassle_Free_Register(USERNAME,PASSWORD) values(%s, %s);",(NAME,HASHEDPASS))
+      mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = %s and PASSWORD = %s",(NAME,HASHEDPASS))
       data = mycursor.fetchone()
       mycursor.execute("create table {TABLENAME} (PASSWORD_ID int NOT NULL AUTO_INCREMENT ,APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255) NOT NULL,PRIMARY KEY (PASSWORD_ID));".format(TABLENAME = NAME + "_" + str(data[0])))
       mydb.commit()
       return jsonify("REGISTERED SUCCESSFULLY") 
+   except TypeError as error:
+      mycursor.rollback()
+      return jsonify({"message":"error"}),403
    except ValueError as error:
-      return jsonify({"message":str(error)}),403
+      return jsonify({"message":"error"}),403
    except mysql.connector.Error as error:
-      print(error)
-      return jsonify({"message":"error"}), 404
-
+      if(error.errno==1062):
+         return jsonify({"message":"USER ALREADY EXIST"}),406
+      else:
+         return jsonify({"message":"error"}), 400
+   
 @app.route('/login' ,methods =['POST'])
 def login():
    try:
@@ -78,23 +90,32 @@ def login():
          raise ValueError("USERNAME CANNOT BE EMPTY")
       if(len(PASSWORD)==0):
          raise ValueError("PASSWORD CANNOT BE EMPTY")
-      mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}' and PASSWORD = '{USER_PASSWORD}';".format(USER_NAME = NAME , USER_PASSWORD = PASSWORD))
-      data = mycursor.fetchone()
-      if data:
-         token = jwt.encode({"username":NAME,"user_id":data[0],"exp":datetime.datetime.utcnow() + datetime.timedelta(days=1)},SECRET_PASSWORD, algorithm="HS256") 
-      else:
-         raise ValueError("INVALID CREDENTIALS")
-      return jsonify({"token" : token})
 
+      mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = NAME))
+      data = mycursor.fetchone()
+
+      # generation of token 
+      if data:
+         mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = NAME))
+         hashed_pass = mycursor.fetchone()
+         if bcrypt.checkpw(PASSWORD.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
+            token = jwt.encode({"username":NAME,"user_id":data[0],"exp":datetime.datetime.utcnow() + datetime.timedelta(days=1)},SECRET_PASSWORD, algorithm="HS256") 
+         else:
+            return jsonify({"Message":"INVALID CREDENTIALS"}),401
+      else:
+         return jsonify({"message":"USER DOES NOT EXIST"}),400
+      return jsonify({"token" : token})
+   except TypeError as error:
+      mycursor.rollback()
+      return jsonify({"message":"error"}),403
    except ValueError as error:
       mycursor.rollback()
-      return jsonify({"message":str(error)}),403
+      return jsonify({"message":"error"}),403
    except mysql.connector.Error as error:
       mycursor.rollback()
       print(error)
       return jsonify({"message":"error"}), 403
-      
-
+   
 def check_for_token(func):
    @wraps(func)
    def wrapped():
@@ -104,7 +125,7 @@ def check_for_token(func):
       try:
          jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
       except:
-         return jsonify({"message":"error"}),401
+         return jsonify({"message":"UNAUTHORIZED"}),403
       return func()
    return wrapped
 
@@ -113,25 +134,47 @@ def check_for_token(func):
 @check_for_token
 def insertpassword():
    try:
+      PASSWORD = request.form["USER_PASSWORD"]
       APP_NAME = request.form["APP_NAME"]
       APP_USERNAME = request.form["APP_USERNAME"]
       APP_PASSWORD = request.form["APP_PASSWORD"]
+      if not PASSWORD:
+         return jsonify({"message":"PASSWORD CANNOT BE EMPTY"}),400
       if not APP_NAME:
-         raise ValueError("app name cannot be empty")
+         return jsonify({"message":"APP NAME CANNOT BE EMPTY"}),400
       if not APP_USERNAME:
-         raise ValueError("app username cannot be empty")
+         return jsonify({"message":"APP USERNAME CANNOT BE EMPTY"}),400
       if not APP_PASSWORD:
-         raise ValueError("app password cannot be empty")
+         return jsonify({"message":"APP PASSWORD CANNOT BE EMPTY"}),400
       TOKEN = request.form["JWT_TOKEN"]
       data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
-      mycursor.execute("insert into {TABLENAME}(APP_NAME,APP_USERNAME,APP_PASSWORD) values ('{APPNAME}','{APPUSERNAME}','{APPPASSWORD}');".format(TABLENAME = data['username'] + "_" + str(data['user_id']),APPNAME=APP_NAME,APPUSERNAME=APP_USERNAME,APPPASSWORD=APP_PASSWORD))
-      mydb.commit()
-      return jsonify({"message":"ADDED SUCCESSFULLY"}),200
-   except ValueError as error:
-      return jsonify({"message":str(error)}),403
-   except mysql.connector.Error as error:
+      mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = data['username']))
+      hashed_pass = mycursor.fetchone()
+      if bcrypt.checkpw(PASSWORD.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
+         salt = "1234567812345678".encode('utf-8')
+         kdf = PBKDF2HMAC(
+         algorithm=hashes.SHA256(),
+         length=32,
+         salt=salt,
+         iterations=100000,
+         )
+         key = base64.urlsafe_b64encode(kdf.derive(PASSWORD.encode('utf-8')))
+         f = Fernet(key)
+         app_pass = f.encrypt(APP_PASSWORD.encode('utf-8'))
+         mycursor.execute("insert into {TABLENAME} (APP_NAME,APP_USERNAME,APP_PASSWORD) values (%s,%s,%s);".format(TABLENAME = data['username'] + "_" + str(data['user_id'])),(APP_NAME,APP_USERNAME,app_pass))
+         mydb.commit()
+         return jsonify({"message":"ADDED SUCCESSFULLY"}),200
+      else:
+         return jsonify({"message":"UNAUTHORIZED"}),403
+   except TypeError as error:
       print(error)
-      return jsonify({"message":"error"}), 403
+      return jsonify({"message":"error"}),403
+   except ValueError as error:
+      print(error)
+      return jsonify({"message":"error"}),400
+   except mysql.connector.Error as error: 
+      print(error)   
+      return jsonify({"message":"error"}), 400
 
 # update passowrd
 # delete password
@@ -150,8 +193,7 @@ def retrievepasswords():
       return jsonify(str(fetchData))
    except mysql.connector.Error as error:
       print(error)
-      return jsonify({"message":"error"}), 404
-      
+      return jsonify({"message":"error"}), 404    
 @app.route('/delete' ,methods =['DELETE'])
 @check_for_token
 def deletepasswords():
@@ -171,9 +213,76 @@ def deletepasswords():
    except mysql.connector.Error as error:
       print(error)
       return jsonify({"message":"error"}), 404
+   
 
-
-
+@app.route('/updatepassword' ,methods =['PUT'])
+@check_for_token
+def updatepasswords():
+   try:
+      TOKEN = request.form["JWT_TOKEN"]
+      if not TOKEN:
+         return jsonify({'message':'Missing Token'}),400
+      data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
+      PASSWORD_ID = request.form["PASSWORD_ID"]
+      if not PASSWORD_ID:
+         return jsonify({'message':'Missing Password ID'}),400
+      CHANGE_PASSWORD = request.form["CHANGE_PASSWORD"]   
+      if not CHANGE_PASSWORD:
+         return jsonify({'message':'Missing Changed Password'}),400
+      mycursor.execute("update {TABLENAME} SET APP_PASSWORD = '{CHANGEPASSWORD}' where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID,CHANGEPASSWORD = CHANGE_PASSWORD))
+      mydb.commit()
+      mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+      fetchData = mycursor.fetchall()
+      return jsonify(str(fetchData))
+   except mysql.connector.Error as error:
+      print(error)
+      return jsonify({"message":"error"}), 404
+@app.route('/updateappname' ,methods =['PUT'])
+@check_for_token
+def updateappname():
+   try:
+      TOKEN = request.form["JWT_TOKEN"]
+      if not TOKEN:
+         return jsonify({'message':'Missing Token'}),400
+      data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
+      PASSWORD_ID = request.form["PASSWORD_ID"]
+      if not PASSWORD_ID:
+         return jsonify({'message':'Missing Password ID'}),400
+      CHANGE_APPNAME = request.form["CHANGE_APPNAME"]   
+      if not CHANGE_APPNAME:
+         return jsonify({'message':'Missing Changed Password'}),400
+      mycursor.execute("update {TABLENAME} SET APP_NAME = '{CHANGEAPPNAME}' where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID,CHANGEAPPNAME = CHANGE_APPNAME))
+      mydb.commit()
+      mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+      fetchData = mycursor.fetchall()
+      return jsonify(str(fetchData))
+   except mysql.connector.Error as error:
+      print(error)
+      return jsonify({"message":"error"}), 404
+   
+@app.route('/updateappusername' ,methods =['PUT'])
+@check_for_token
+def updateappusername():
+   try:
+      TOKEN = request.form["JWT_TOKEN"]
+      if not TOKEN:
+         return jsonify({'message':'Missing Token'}),400
+      data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
+      PASSWORD_ID = request.form["PASSWORD_ID"]
+      if not PASSWORD_ID:
+         return jsonify({'message':'Missing Password ID'}),400
+      CHANGE_APPUSERNAME = request.form["CHANGE_APPUSERNAME"]   
+      if not CHANGE_APPUSERNAME:
+         return jsonify({'message':'Missing Changed Password'}),400
+      mycursor.execute("update {TABLENAME} SET APP_USERNAME = '{CHANGEAPPUSERNAME}' where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID,CHANGEAPPUSERNAME = CHANGE_APPUSERNAME))
+      mydb.commit()
+      mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+      fetchData = mycursor.fetchall()
+      return jsonify(str(fetchData))
+   except mysql.connector.Error as error:
+      print(error)
+      return jsonify({"message":"error"}), 404
+      
 @app.route('/auth' ,methods =['POST'])
 @check_for_token
 def valid():
@@ -209,7 +318,7 @@ def createtable():
       return jsonify(data);
    except Exception as error:
       return jsonify(str(error))
-
+   
 @app.route('/extra' ,methods =['POST'])
 def extra():
    try:
@@ -219,6 +328,35 @@ def extra():
       mycursor.execute("create table {TABLENAME} (APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255));".format(TABLENAME = NAME + "_" + str(data[0])))
       return "SUCCESS CREATED TABLE"
    except Exception as error:
-      return jsonify(str(error))
+      return jsonify(str(error)) 
+
+@app.route('/decrypt' ,methods =['POST'])
+def decrypt():
+   try:
+      APP_PASS = request.form['APP_PASS']
+      PASSWORD = request.form['PASS']
+      TEXT = request.form['TEXT']
+      salt ="1234567812345678".encode('utf-8')
+      kdf = PBKDF2HMAC(
+      algorithm=hashes.SHA256(),
+      length=32,
+      salt=salt,
+      iterations=100000,
+      )
+      key = base64.urlsafe_b64encode(kdf.derive(PASSWORD.encode('utf-8')))
+      print(key)
+      f = Fernet(key)
+      # token = f.encrypt(TEXT.encode('utf-8'))
+      token = APP_PASS.encode('utf-8')
+      print(f.decrypt(token))
+      return f.decrypt(token)
+      # key = Fernet.generate_key()
+      # f = Fernet(key)
+      # print(key)
+      # token = f.encrypt(b"A really secret message. Not for prying eyes.")
+      # print(f.decrypt(token))
+      # return str(f.decrypt(token))
+   except Exception as error:
+      return jsonify(str(error)) 
 if __name__ == '__main__':
    app.run()
