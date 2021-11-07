@@ -26,20 +26,7 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 mycursor.execute("use Hassle_Free;")
 
-#query = """insert into marks values ("Sid",036,101)""";
-# mycursor.execute(query)
-# mydb.commit()
-# mycursor.execute(str)
-# mycursor.execute("update marks SET marks = 99 WHERE name = 'Sid';")
-# mycursor.execute("delete from marks where name = 'Sid';")
-# mycursor.execute("select * from marks;")
-# data = mycursor.fetchall()
-# print(data)
-
-
 app = Flask(__name__)
-
-
 
 @app.route('/fetchByName' ,methods =['POST'])
 def fetch_data_username():
@@ -251,20 +238,38 @@ def deletepasswords():
 def updatepasswords():
    try:
       TOKEN = request.form["JWT_TOKEN"]
+      PASSWORD = request.form["USER_PASSWORD"]
+      PASSWORD_ID = request.form["PASSWORD_ID"]
       if not TOKEN:
          return jsonify({'message':'Missing Token'}),400
       data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
-      PASSWORD_ID = request.form["PASSWORD_ID"]
       if not PASSWORD_ID:
-         return jsonify({'message':'Missing Password ID'}),400
+         return jsonify({'message':'MISSING PASSWORD ID'}),400
+      if not PASSWORD:
+         return jsonify({'message':'PASSWORD CANNOT BE EMPTY'}),400
       CHANGE_PASSWORD = request.form["CHANGE_PASSWORD"]   
       if not CHANGE_PASSWORD:
-         return jsonify({'message':'Missing Changed Password'}),400
-      mycursor.execute("update {TABLENAME} SET APP_PASSWORD = '{CHANGEPASSWORD}' where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID,CHANGEPASSWORD = CHANGE_PASSWORD))
-      mydb.commit()
-      mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
-      fetchData = mycursor.fetchall()
-      return jsonify(str(fetchData))
+         return jsonify({'message':'MISSING CHANGE PASSWORD'}),400
+      mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = data['username']))
+      hashed_pass = mycursor.fetchone()
+      if bcrypt.checkpw(PASSWORD.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
+         salt = SALTING_KEY.encode('utf-8')
+         kdf = PBKDF2HMAC(
+         algorithm=hashes.SHA256(),
+         length=32,
+         salt=salt,
+         iterations=100000,
+         )
+         key = base64.urlsafe_b64encode(kdf.derive(PASSWORD.encode('utf-8')))
+         f = Fernet(key)
+         changed_app_pass = f.encrypt(CHANGE_PASSWORD.encode('utf-8'))
+         mycursor.execute("update {TABLENAME} SET APP_PASSWORD = %s where PASSWORD_ID = %s;".format(TABLENAME = data['username'] + "_" + str(data["user_id"])),(changed_app_pass,PASSWORD_ID))
+         mydb.commit()
+         mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+         fetchData = mycursor.fetchall()
+         return jsonify(str(fetchData))
+      else:
+         return jsonify({"message":"UNAUTHORIZED"})
    except mysql.connector.Error as error:
       print(error)
       return jsonify({"message":"error"}), 404
