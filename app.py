@@ -14,18 +14,36 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 load_dotenv()
-DB_PASSWORD = os.getenv('PASSWORD')
+
+DB_HOST = os.getenv('HEROKUDBHOST')
+DB_NAME = os.getenv('HEROKUDATABASE')
+DB_USER = os.getenv('HEROKUDBUSER')
+DB_PASSWORD = os.getenv('HEROKUDBPASSWORD')
+DB_PORT = os.getenv('HEROKUPORT')
 SECRET_PASSWORD = os.getenv('SECRETKEY')
 SALTING_KEY = os.getenv('SALTING')
-DB_USERNAME = os.getenv('DBUSERNAME')
-DATABASE = os.getenv('DATABASE')
 mydb = psycopg2.connect(
-   host = "localhost" ,
-   dbname = DATABASE,
-   user = DB_USERNAME,
+   host = DB_HOST ,
+   dbname = DB_NAME,
+   user = DB_USER,
    password = DB_PASSWORD,
-   port = 8080
+   port = DB_PORT
 )
+
+# DB_PASSWORD = os.getenv('PASSWORD')
+# SECRET_PASSWORD = os.getenv('SECRETKEY')
+# SALTING_KEY = os.getenv('SALTING')
+# DB_USERNAME = os.getenv('DBUSERNAME')
+# DATABASE = os.getenv('DATABASE')
+
+
+# mydb = psycopg2.connect(
+#    host = "localhost" ,
+#    dbname = DATABASE,
+#    user = DB_USERNAME,
+#    password = DB_PASSWORD,
+#    port = 8080
+# )
 
 mycursor = mydb.cursor()
 # mycursor.execute("use Hassle_Free;")
@@ -380,11 +398,9 @@ def createtable():
 @app.route('/extra' ,methods =['POST'])
 def extra():
    try:
-      NAME = request.form['USER_NAME']
-      mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = NAME))
-      data = mycursor.fetchone()
-      mycursor.execute("create table {TABLENAME} (APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255));".format(TABLENAME = NAME + "_" + str(data[0])))
-      return "SUCCESS CREATED TABLE"
+      mycursor.execute("create table hassle_free_register(USER_ID SERIAL PRIMARY KEY NOT NULL, USERNAME varchar(255) NOT NULL UNIQUE ,PASSWORD varchar(255) NOT NULL);")
+      mydb.commit()
+      return "BUN BHAI TABLE AND DATABASE"
    except Exception as error:
       return jsonify(str(error)) 
 
