@@ -15,6 +15,8 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 load_dotenv()
 
+app = Flask(__name__)
+
 DB_HOST = os.getenv('HEROKUDBHOST')
 DB_NAME = os.getenv('HEROKUDATABASE')
 DB_USER = os.getenv('HEROKUDBUSER')
@@ -48,7 +50,7 @@ mydb = psycopg2.connect(
 mycursor = mydb.cursor()
 # mycursor.execute("use Hassle_Free;")
 
-app = Flask(__name__)
+
 
 @app.route('/fetchByName' ,methods =['POST'])
 def fetch_data_username():
