@@ -2,7 +2,7 @@
 import psycopg2
 from dotenv import load_dotenv
 import os
-from flask import Flask, json, request , jsonify
+from flask import Flask, request , jsonify
 import jwt
 from functools import wraps
 import datetime
@@ -13,9 +13,9 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-load_dotenv()
-
 app = Flask(__name__)
+
+load_dotenv()
 
 DB_HOST = os.getenv('HEROKUDBHOST')
 DB_NAME = os.getenv('HEROKUDATABASE')
