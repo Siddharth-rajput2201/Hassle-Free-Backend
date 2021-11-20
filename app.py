@@ -101,6 +101,7 @@ def register():
          mydb.rollback()
          return jsonify({"message":"USER ALREADY REGISTERED"}),400
       else:
+          mydb.rollback()
          return jsonify({"message":"error"}),403
 
 @app.route('/login' ,methods =['POST'])
