@@ -18,37 +18,37 @@ app = Flask(__name__)
 load_dotenv()
 
 # UNCOMMENT FOR SERVER
-# DB_HOST = os.getenv('HEROKUDBHOST')
-# DB_NAME = os.getenv('HEROKUDATABASE')
-# DB_USER = os.getenv('HEROKUDBUSER')
-# DB_PASSWORD = os.getenv('HEROKUDBPASSWORD')
-# DB_PORT = os.getenv('HEROKUPORT')
-# SECRET_PASSWORD = os.getenv('SECRETKEY')
-# SALTING_KEY = os.getenv('SALTING')
-# mydb = psycopg2.connect(
-#    host = DB_HOST ,
-#    dbname = DB_NAME,
-#    user = DB_USER,
-#    password = DB_PASSWORD,
-#    port = DB_PORT
-# )
+DB_HOST = os.getenv('HEROKUDBHOST')
+DB_NAME = os.getenv('HEROKUDATABASE')
+DB_USER = os.getenv('HEROKUDBUSER')
+DB_PASSWORD = os.getenv('HEROKUDBPASSWORD')
+DB_PORT = os.getenv('HEROKUPORT')
+SECRET_PASSWORD = os.getenv('SECRETKEY')
+SALTING_KEY = os.getenv('SALTING')
+mydb = psycopg2.connect(
+   host = DB_HOST ,
+   dbname = DB_NAME,
+   user = DB_USER,
+   password = DB_PASSWORD,
+   port = DB_PORT
+)
 
 
 # UNCOMMENT FOR LOCAL
-DB_PASSWORD = os.getenv('PASSWORD')
-SECRET_PASSWORD = os.getenv('SECRETKEY')
-SALTING_KEY = os.getenv('SALTING')
-DB_USERNAME = os.getenv('DBUSERNAME')
-DATABASE = os.getenv('DATABASE')
+# DB_PASSWORD = os.getenv('PASSWORD')
+# SECRET_PASSWORD = os.getenv('SECRETKEY')
+# SALTING_KEY = os.getenv('SALTING')
+# DB_USERNAME = os.getenv('DBUSERNAME')
+# DATABASE = os.getenv('DATABASE')
 
 
-mydb = psycopg2.connect(
-   host = "localhost" ,
-   dbname = DATABASE,
-   user = DB_USERNAME,
-   password = DB_PASSWORD,
-   port = 5432
-)
+# mydb = psycopg2.connect(
+#    host = "localhost" ,
+#    dbname = DATABASE,
+#    user = DB_USERNAME,
+#    password = DB_PASSWORD,
+#    port = 5432
+# )
 
 mycursor = mydb.cursor()
 # mycursor.execute("use Hassle_Free;")
@@ -122,7 +122,7 @@ def login():
          if bcrypt.checkpw(PASSWORD.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
             token = jwt.encode({"username":NAME,"user_id":data[0],"exp":datetime.datetime.utcnow() + datetime.timedelta(days=1)},SECRET_PASSWORD, algorithm="HS256") 
          else:
-            return jsonify({"Message":"INVALID CREDENTIALS"}),401
+            return jsonify({"message":"INVALID CREDENTIALS"}),401
       else:
          return jsonify({"message":"USER DOES NOT EXIST"}),400
       return jsonify({"token" : token})
