@@ -33,7 +33,6 @@ mydb = psycopg2.connect(
    port = DB_PORT
 )
 
-
 # UNCOMMENT FOR LOCAL
 # DB_PASSWORD = os.getenv('PASSWORD')
 # SECRET_PASSWORD = os.getenv('SECRETKEY')
