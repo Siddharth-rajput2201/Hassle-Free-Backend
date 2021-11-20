@@ -17,35 +17,38 @@ app = Flask(__name__)
 
 load_dotenv()
 
-DB_HOST = os.getenv('HEROKUDBHOST')
-DB_NAME = os.getenv('HEROKUDATABASE')
-DB_USER = os.getenv('HEROKUDBUSER')
-DB_PASSWORD = os.getenv('HEROKUDBPASSWORD')
-DB_PORT = os.getenv('HEROKUPORT')
-SECRET_PASSWORD = os.getenv('SECRETKEY')
-SALTING_KEY = os.getenv('SALTING')
-mydb = psycopg2.connect(
-   host = DB_HOST ,
-   dbname = DB_NAME,
-   user = DB_USER,
-   password = DB_PASSWORD,
-   port = DB_PORT
-)
-
-# DB_PASSWORD = os.getenv('PASSWORD')
+# UNCOMMENT FOR SERVER
+# DB_HOST = os.getenv('HEROKUDBHOST')
+# DB_NAME = os.getenv('HEROKUDATABASE')
+# DB_USER = os.getenv('HEROKUDBUSER')
+# DB_PASSWORD = os.getenv('HEROKUDBPASSWORD')
+# DB_PORT = os.getenv('HEROKUPORT')
 # SECRET_PASSWORD = os.getenv('SECRETKEY')
 # SALTING_KEY = os.getenv('SALTING')
-# DB_USERNAME = os.getenv('DBUSERNAME')
-# DATABASE = os.getenv('DATABASE')
-
-
 # mydb = psycopg2.connect(
-#    host = "localhost" ,
-#    dbname = DATABASE,
-#    user = DB_USERNAME,
+#    host = DB_HOST ,
+#    dbname = DB_NAME,
+#    user = DB_USER,
 #    password = DB_PASSWORD,
-#    port = 8080
+#    port = DB_PORT
 # )
+
+
+# UNCOMMENT FOR LOCAL
+DB_PASSWORD = os.getenv('PASSWORD')
+SECRET_PASSWORD = os.getenv('SECRETKEY')
+SALTING_KEY = os.getenv('SALTING')
+DB_USERNAME = os.getenv('DBUSERNAME')
+DATABASE = os.getenv('DATABASE')
+
+
+mydb = psycopg2.connect(
+   host = "localhost" ,
+   dbname = DATABASE,
+   user = DB_USERNAME,
+   password = DB_PASSWORD,
+   port = 5432
+)
 
 mycursor = mydb.cursor()
 # mycursor.execute("use Hassle_Free;")
