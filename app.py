@@ -88,7 +88,7 @@ def register():
       data = mycursor.fetchone()
       mycursor.execute("create table {TABLENAME} (PASSWORD_ID SERIAL NOT NULL PRIMARY KEY,APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255) NOT NULL);".format(TABLENAME = NAME + "_" + str(data[0])))
       mydb.commit()
-      return jsonify("REGISTERED SUCCESSFULLY") 
+      return jsonify({"message":"REGISTERED SUCCESSFULLY"}) 
    except TypeError as error:
       print(error)
       return jsonify({"message":"error"}),400
