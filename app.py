@@ -98,6 +98,7 @@ def register():
    except psycopg2.Error as error:
       print(error)
       if(error.pgcode == str(23505)):
+         mydb.rollback()
          return jsonify({"message":"USER ALREADY REGISTERED"}),400
       else:
          return jsonify({"message":"error"}),403
