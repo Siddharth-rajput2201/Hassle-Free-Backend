@@ -1,4 +1,5 @@
 # import mysql.connector
+import collections
 import psycopg2
 from dotenv import load_dotenv
 import os
@@ -243,7 +244,15 @@ def retrievepasswords():
       data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
       mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
       fetchData = mycursor.fetchall()
-      return jsonify(str(fetchData))  
+      result = []
+      for fd in fetchData:
+         d = collections.OrderedDict()
+         d["password_id"] = fd[0]
+         d["app_name"] = fd[1]
+         d["username"] = fd[2]
+         d["encrypted_password"] = fd[3]
+         result.append(d)
+      return jsonify(result)  
    except Exception as error:
       print(error)
       return jsonify({"message":"error"}), 404   
