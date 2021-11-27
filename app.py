@@ -141,7 +141,7 @@ def check_for_token(func):
    def wrapped():
       TOKEN = request.form['JWT_TOKEN']
       if not TOKEN:
-         return jsonify({'message':'Missing Token'}),400
+         return jsonify({'message':'MISSING TOKEN'}),400
       try:
          jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
       except:
@@ -273,9 +273,9 @@ def deletepasswords():
          return jsonify({'message':'Missing Password ID'}),400
       mycursor.execute("delete from {TABLENAME} where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID))
       mydb.commit()
-      mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
-      fetchData = mycursor.fetchall()
-      return jsonify(str(fetchData))
+      # mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+      # fetchData = mycursor.fetchall()
+      return jsonify(jsonify({"message":"DELETE SUCCESSFULLY"})),200
    except Exception as error:
       print(error)
       return jsonify({"message":"error"}), 404   
@@ -316,9 +316,9 @@ def updatepasswords():
          changed_app_pass = f.encrypt(CHANGE_PASSWORD.encode('utf-8'))
          mycursor.execute("update {TABLENAME} SET APP_PASSWORD = %s where PASSWORD_ID = %s;".format(TABLENAME = data['username'] + "_" + str(data["user_id"])),(changed_app_pass.decode('utf-8'),PASSWORD_ID))
          mydb.commit()
-         mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
-         fetchData = mycursor.fetchall()
-         return jsonify(str(fetchData))
+         # mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+         # fetchData = mycursor.fetchall()
+         return jsonify({"message":"UPDATED SUCCESSFULLY"}),200
       else:
          return jsonify({"message":"UNAUTHORIZED"})
    except Exception as error:
@@ -341,9 +341,9 @@ def updateappname():
          return jsonify({'message':'Missing Changed Password'}),400
       mycursor.execute("update {TABLENAME} SET APP_NAME = '{CHANGEAPPNAME}' where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID,CHANGEAPPNAME = CHANGE_APPNAME))
       mydb.commit()
-      mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
-      fetchData = mycursor.fetchall()
-      return jsonify(str(fetchData))
+      # mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+      # fetchData = mycursor.fetchall()
+      return jsonify({"message":"UPDATED SUCCESSFULLY"}),200
    # except mysql.connector.Error as error:
    #    print(error)
    #    return jsonify({"message":"error"}), 404
@@ -367,12 +367,9 @@ def updateappusername():
          return jsonify({'message':'Missing Changed Password'}),400
       mycursor.execute("update {TABLENAME} SET APP_USERNAME = '{CHANGEAPPUSERNAME}' where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID,CHANGEAPPUSERNAME = CHANGE_APPUSERNAME))
       mydb.commit()
-      mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
-      fetchData = mycursor.fetchall()
-      return jsonify(str(fetchData))
-   # except mysql.connector.Error as error:
-   #    print(error)
-   #    return jsonify({"message":"error"}), 404
+      # mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+      # fetchData = mycursor.fetchall()
+      return jsonify({"message":"UPDATED SUCCESSFULLY"}),200
    except Exception as error:
       print(error)
       return jsonify({"message":"error"}), 404 
