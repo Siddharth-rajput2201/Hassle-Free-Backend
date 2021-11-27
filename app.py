@@ -40,8 +40,6 @@ mydb = psycopg2.connect(
 # SALTING_KEY = os.getenv('SALTING')
 # DB_USERNAME = os.getenv('DBUSERNAME')
 # DATABASE = os.getenv('DATABASE')
-
-
 # mydb = psycopg2.connect(
 #    host = "localhost" ,
 #    dbname = DATABASE,
@@ -275,7 +273,7 @@ def deletepasswords():
       mydb.commit()
       # mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
       # fetchData = mycursor.fetchall()
-      return jsonify(jsonify({"message":"DELETE SUCCESSFULLY"})),200
+      return jsonify({"message":"DELETE SUCCESSFULLY"}),200
    except Exception as error:
       print(error)
       return jsonify({"message":"error"}), 404   
