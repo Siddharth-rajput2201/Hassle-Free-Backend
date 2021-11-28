@@ -375,7 +375,7 @@ def updateappusername():
 @app.route('/auth' ,methods =['POST'])
 @check_for_token
 def valid():
-   return "ONLY IF TOKEN IS VALID"
+   return jsonify({"message":"AUTHENTICATED"}),200
 
 @app.route('/token' ,methods =['POST'])
 def generatetoken():
