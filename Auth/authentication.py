@@ -78,15 +78,17 @@ def login():
          mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
          hashed_pass = mycursor.fetchone()
          if bcrypt.checkpw(password.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
-            token = jwt.encode({"username":name,"user_id":data[0],"exp":datetime.datetime.utcnow() + datetime.timedelta(days=1)},SECRET_PASSWORD, algorithm="HS256") 
+            token = jwt.encode({"username":name,"user_id":data[0],"exp":datetime.datetime.utcnow() + datetime.timedelta(days=1)},SECRET_PASSWORD, algorithm="HS256")
          else:
             return jsonify({"message":"INVALID CREDENTIALS"}),401
       else:
          return jsonify({"message":"USER DOES NOT EXIST"}),400
-      return jsonify({"token" : token})
+      return jsonify({"token" : token.decode('utf-8')})
    except TypeError as error:
+      print(error)
       return jsonify({"message":"error"}),400
    except ValueError as error:
+      print(error)
       return jsonify({"message":"error"}),403
    except psycopg2.Error as error:
       print(error)
