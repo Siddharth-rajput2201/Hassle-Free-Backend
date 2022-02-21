@@ -72,6 +72,7 @@ def fetch_all_data():
     data = mycursor.fetchall()
     return jsonify(data)
 
+
 @app.route('/register' ,methods =['POST'])
 def register():
    try:
