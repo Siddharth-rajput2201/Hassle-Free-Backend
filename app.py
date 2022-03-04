@@ -13,12 +13,17 @@ import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.backends import default_backend
 from Auth.authentication import auth_blueprint
+from Delete.delete import delete_blueprint
+from Insert.insert import insert_blueprint
+from Auth.authhelper import check_for_token_email
 
 
 app = Flask(__name__)
 app.register_blueprint(auth_blueprint,url_prefix='/auth')
-
+app.register_blueprint(delete_blueprint,url_prefix='/delete')
+app.register_blueprint(insert_blueprint,url_prefix='/insert')
 load_dotenv()
 
 # UNCOMMENT FOR SERVER
@@ -29,6 +34,8 @@ load_dotenv()
 # DB_PORT = os.getenv('HEROKUPORT')
 # SECRET_PASSWORD = os.getenv('SECRETKEY')
 # SALTING_KEY = os.getenv('SALTING')
+# EMAILADDRESS = os.getenv('EMAILADDRESS')
+# EMAILPASSWORD = os.getenv('EMAILPASSWORD')
 # mydb = psycopg2.connect(
 #    host = DB_HOST ,
 #    dbname = DB_NAME,
@@ -43,6 +50,9 @@ SECRET_PASSWORD = os.getenv('SECRETKEY')
 SALTING_KEY = os.getenv('SALTING')
 DB_USERNAME = os.getenv('DBUSERNAME')
 DATABASE = os.getenv('DATABASE')
+EMAIL_ADDRESS = os.getenv('EMAILADDRESS')
+EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
+
 mydb = psycopg2.connect(
    host = "localhost" ,
    dbname = DATABASE,
@@ -115,7 +125,7 @@ def login():
          return jsonify({"message":"USERNAME CANNOT BE EMPTY"})
       if(len(PASSWORD)==0):
          return jsonify({"message":"PASSWORD CANNOT BE EMPTY"})
-
+   
       mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = NAME))
       data = mycursor.fetchone()
       
@@ -138,22 +148,10 @@ def login():
       print(error)
       return jsonify({"message":"error"}),403
 
-def check_for_token(func):
-   @wraps(func)
-   def wrapped():
-      TOKEN = request.form['JWT_TOKEN']
-      if not TOKEN:
-         return jsonify({'message':'MISSING TOKEN'}),400
-      try:
-         jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
-      except:
-         return jsonify({"message":"UNAUTHORIZED"}),403
-      return func()
-   return wrapped
 
 
 @app.route('/insertpassword' ,methods =['POST'])
-@check_for_token
+@check_for_token_email
 def insertpassword():
    try:
       PASSWORD = request.form["USER_PASSWORD"]
@@ -175,11 +173,13 @@ def insertpassword():
       if bcrypt.checkpw(PASSWORD.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
          salt = SALTING_KEY.encode('utf-8')
          kdf = PBKDF2HMAC(
+         backend=default_backend(),
          algorithm=hashes.SHA256(),
          length=32,
          salt=salt,
          iterations=100000,
          )
+        
          key = base64.urlsafe_b64encode(kdf.derive(PASSWORD.encode('utf-8')))
          f = Fernet(key)
          app_pass = f.encrypt(APP_PASSWORD.encode('utf-8'))
@@ -197,10 +197,13 @@ def insertpassword():
    except psycopg2.Error as error:
       print(error)
       return jsonify({"message":"error"}),403
+   except Exception as error:
+      print(error)
+      return jsonify({"message":"error"}),403
 
 
 @app.route('/decrypt' ,methods =['POST'])
-@check_for_token
+@check_for_token_email
 def decrypt():
    try:
       TOKEN = request.form['JWT_TOKEN']
@@ -217,6 +220,7 @@ def decrypt():
       if bcrypt.checkpw(PASSWORD.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
          salt = SALTING_KEY.encode('utf-8')
          kdf = PBKDF2HMAC(
+         backend=default_backend(),
          algorithm=hashes.SHA256(),
          length=32,
          salt=salt,
@@ -229,6 +233,7 @@ def decrypt():
       else:
          return jsonify({"message":"UNAUTHORIZED"}),403
    except Exception as error:
+      print(error)
       return jsonify({"message":"error"}) 
    except psycopg2.Error as error:
       print(error)
@@ -239,7 +244,7 @@ def decrypt():
 # reterive all password's
 
 @app.route('/retrieve' ,methods =['POST'])
-@check_for_token
+@check_for_token_email
 def retrievepasswords():
    try:
       TOKEN = request.form["JWT_TOKEN"]
@@ -262,32 +267,32 @@ def retrievepasswords():
       print(error)
       return jsonify({"message":"error"}),403
 
-@app.route('/delete' ,methods =['DELETE'])
-@check_for_token
-def deletepasswords():
-   try:
-      TOKEN = request.form["JWT_TOKEN"]
-      if not TOKEN:
-         return jsonify({'message':'Missing Token'}),400
-      data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
-      PASSWORD_ID = request.form["PASSWORD_ID"]
-      if not PASSWORD_ID:
-         return jsonify({'message':'Missing Password ID'}),400
-      mycursor.execute("delete from {TABLENAME} where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID))
-      mydb.commit()
-      # mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
-      # fetchData = mycursor.fetchall()
-      return jsonify({"message":"DELETE SUCCESSFULLY"}),200
-   except Exception as error:
-      print(error)
-      return jsonify({"message":"error"}), 404   
-   except psycopg2.Error as error:
-      print(error)
-      return jsonify({"message":"error"}),403 
+# @app.route('/delete' ,methods =['DELETE'])
+# @check_for_token
+# def deletepasswords():
+#    try:
+#       TOKEN = request.form["JWT_TOKEN"]
+#       if not TOKEN:
+#          return jsonify({'message':'Missing Token'}),400
+#       data =  jwt.decode(TOKEN,SECRET_PASSWORD,algorithms="HS256")
+#       PASSWORD_ID = request.form["PASSWORD_ID"]
+#       if not PASSWORD_ID:
+#          return jsonify({'message':'Missing Password ID'}),400
+#       mycursor.execute("delete from {TABLENAME} where PASSWORD_ID = '{PASSWORDID}';".format(TABLENAME = data['username'] + "_" + str(data["user_id"]),PASSWORDID=PASSWORD_ID))
+#       mydb.commit()
+#       # mycursor.execute("select * from {TABLENAME};".format(TABLENAME = data['username'] + "_" + str(data['user_id'])))
+#       # fetchData = mycursor.fetchall()
+#       return jsonify({"message":"DELETE SUCCESSFULLY"}),200
+#    except Exception as error:
+#       print(error)
+#       return jsonify({"message":"error"}), 404   
+#    except psycopg2.Error as error:
+#       print(error)
+#       return jsonify({"message":"error"}),403 
    
 
 @app.route('/updatepassword' ,methods =['PUT'])
-@check_for_token
+@check_for_token_email
 def updatepasswords():
    try:
       TOKEN = request.form["JWT_TOKEN"]
@@ -328,7 +333,7 @@ def updatepasswords():
       return jsonify({"message":"error"}), 404 
 
 @app.route('/updateappname' ,methods =['PUT'])
-@check_for_token
+@check_for_token_email
 def updateappname():
    try:
       TOKEN = request.form["JWT_TOKEN"]
@@ -354,7 +359,7 @@ def updateappname():
       return jsonify({"message":"error"}), 404 
 
 @app.route('/updateappusername' ,methods =['PUT'])
-@check_for_token
+@check_for_token_email
 def updateappusername():
    try:
       TOKEN = request.form["JWT_TOKEN"]
@@ -376,8 +381,8 @@ def updateappusername():
       print(error)
       return jsonify({"message":"error"}), 404 
       
-@app.route('/auth' ,methods =['POST'])
-@check_for_token
+@app.route('/verify' ,methods =['POST'])
+@check_for_token_email
 def valid():
    return jsonify({"message":"AUTHENTICATED"}),200
 
@@ -399,15 +404,13 @@ def decodetoken():
       return jsonify(str(error))
 
 
-
-
-
-@app.route('/createtable' ,methods =['POST'])
+@app.route('/test' ,methods =['POST'])
 def createtable():
    try:
       NAME = request.form['USER_NAME']
-      mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = NAME))
+      mycursor.execute("select USER_ID,EMAIL_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = NAME))
       data = mycursor.fetchone()
+      print(data[1])
       return jsonify(data);
    except Exception as error:
       return jsonify(str(error))
@@ -415,14 +418,12 @@ def createtable():
 @app.route('/extra' ,methods =['POST'])
 def extra():
    try:
-      mycursor.execute("create table hassle_free_register(USER_ID SERIAL PRIMARY KEY NOT NULL, USERNAME varchar(255) NOT NULL UNIQUE ,PASSWORD varchar(255) NOT NULL);")
+      mycursor.execute("create table hassle_free_register(USER_ID SERIAL PRIMARY KEY NOT NULL, USERNAME varchar(255) NOT NULL UNIQUE ,PASSWORD varchar(255) NOT NULL,EMAIL_ID varchar(255) NOT NULL UNIQUE , EMAIL_VERIFICATION boolean NOT NULL );")
       mydb.commit()
       return "BUNGYA BHAI TABLE AND DATABASE"
    except Exception as error:
       return jsonify(str(error)) 
 
-
-
 if __name__ == '__main__':
    print("Running The Server")
-   app.run()
+   app.run(host='0.0.0.0')
