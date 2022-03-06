@@ -17,6 +17,7 @@ from cryptography.hazmat.backends import default_backend
 from Auth.authentication import auth_blueprint
 from Delete.delete import delete_blueprint
 from Insert.insert import insert_blueprint
+from Auth.email import email_blueprint
 from Auth.authhelper import check_for_token_email
 
 
@@ -24,6 +25,7 @@ app = Flask(__name__)
 app.register_blueprint(auth_blueprint,url_prefix='/auth')
 app.register_blueprint(delete_blueprint,url_prefix='/delete')
 app.register_blueprint(insert_blueprint,url_prefix='/insert')
+app.register_blueprint(email_blueprint,url_prefix='/emailauth')
 load_dotenv()
 
 # UNCOMMENT FOR SERVER
@@ -52,6 +54,7 @@ DB_USERNAME = os.getenv('DBUSERNAME')
 DATABASE = os.getenv('DATABASE')
 EMAIL_ADDRESS = os.getenv('EMAILADDRESS')
 EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
+SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
 
 mydb = psycopg2.connect(
    host = "localhost" ,

@@ -35,7 +35,7 @@ def register():
       mycursor.execute("insert into hassle_free_register (USERNAME,PASSWORD,EMAIL_ID,EMAIL_VERIFICATION) values(%s,%s,%s,%s);",[name,HASHEDPASS.decode('utf-8'),email_id,False]) 
       mycursor.execute("select USER_ID,EMAIL_ID,USERNAME from Hassle_Free_Register where username = %s and password::bytea = %s;",[name,HASHEDPASS]) 
       data = mycursor.fetchone()
-      sendEmailVerification(data[0],data[1],data[2])
+      sendEmailVerification(data[1],data[2])
       mycursor.execute("create table {TABLENAME} (PASSWORD_ID SERIAL NOT NULL PRIMARY KEY,APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255) NOT NULL);".format(TABLENAME = name + "_" + str(data[0])))
       mydb.commit()
       return jsonify({"message":"REGISTERED SUCCESSFULLY"}),201 
@@ -65,17 +65,20 @@ def login():
       if(len(password)==0):
          return jsonify({"message":"PASSWORD CANNOT BE EMPTY"})
 
-      mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
+      mycursor.execute("select USER_ID,EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
       data = mycursor.fetchone()
       
       # generation of token 
       if data:
          mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
          hashed_pass = mycursor.fetchone()
-         if bcrypt.checkpw(password.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
-            token = jwt.encode({"username":name,"user_id":data[0],"exp":datetime.datetime.utcnow() + datetime.timedelta(days=1)},SECRET_PASSWORD, algorithm="HS256")
+         if(data[1]==True):
+            if bcrypt.checkpw(password.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
+               token = jwt.encode({"username":name,"user_id":data[0],"exp":datetime.datetime.utcnow() + datetime.timedelta(days=1)},SECRET_PASSWORD, algorithm="HS256")
+            else:
+               return jsonify({"message":"INVALID CREDENTIALS"}),401
          else:
-            return jsonify({"message":"INVALID CREDENTIALS"}),401
+            return jsonify({"message":"ACCOUNT NOT VERIFIED"}),401
       else:
          return jsonify({"message":"USER DOES NOT EXIST"}),400
       return jsonify({"token" : token.decode('utf-8')})
@@ -88,29 +91,30 @@ def login():
    except psycopg2.Error as error:
       print(error)
       return jsonify({"message":"error"}),403
+   except Exception as error:
+      print(error)
+      return jsonify({"message":"error"}),403
 
-# @auth_blueprint.route('/verifyemail' ,methods =['POST'])
-# def register():
-#    from app import mycursor,mydb
-#    try:
-#       HASHEDPASS = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt())   
-#       mycursor.execute("insert into hassle_free_register (USERNAME,PASSWORD,EMAIL_ID,EMAIL_VERIFICATION) values(%s,%s,%s,%s);",[name,HASHEDPASS.decode('utf-8'),email_id,False]) 
-#       mycursor.execute("select USER_ID from Hassle_Free_Register where username = %s and password::bytea = %s;",[name,HASHEDPASS]) 
-#       data = mycursor.fetchone()
-#       mycursor.execute("create table {TABLENAME} (PASSWORD_ID SERIAL NOT NULL PRIMARY KEY,APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255) NOT NULL);".format(TABLENAME = name + "_" + str(data[0])))
-#       mydb.commit()
-#       return jsonify({"message":"REGISTERED SUCCESSFULLY"}),201 
-#    except TypeError as error:
-#       print(error)
-#       return jsonify({"message":"error"}),400
-#    except ValueError as error:
-#       print(error)
-#       return jsonify({"message":"error"}),400
-#    except psycopg2.Error as error:
-#       print(error)
-#       if(error.pgcode == str(23505)):
-#          mydb.rollback()
-#          return jsonify({"message":"USER ALREADY REGISTERED"}),400
-#       else:
-#          mydb.rollback()
-#          return jsonify({"message":"error"}),403
+@auth_blueprint.route('/verifyemail' ,methods =['GET'])
+def verifyEmail():
+   from app import mycursor,mydb,SECRET_JWT_KEY
+   args = request.args
+   token = args.get('t')
+   if not token:
+      return jsonify({"message":"TOKEN MISSING"}),400
+   try:
+      data = jwt.decode(token,SECRET_JWT_KEY,algorithms="HS256")
+      mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = data['username']))
+      STATUS = mycursor.fetchone()
+      if(STATUS[0]==False):
+         mycursor.execute("update hassle_free_register set email_verification = True where username = '{USER_NAME}';".format(USER_NAME = data['username']))
+         mydb.commit()
+         return jsonify({"message":"EMAIL VERIFIED"}),201
+      else:
+         return jsonify({"message":"EMAIL ALREADY VERIFIED"}),201
+   except psycopg2.Error as error:
+      print(error)
+      return jsonify({"message":"error"}),403
+   except:
+      return jsonify({"message":"UNAUTHORIZED"}),403
+   
