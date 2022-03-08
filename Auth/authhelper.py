@@ -40,7 +40,7 @@ def check_for_token_email(func):
          mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = data['username']))
          STATUS = mycursor.fetchone()
          if(STATUS[0]==False):
-             return jsonify({"message":"EMAIL NOT VERIFIED"}),403
+             return jsonify({"message":"ACCOUNT NOT VERIFIED"}),403
       except:
          return jsonify({"message":"UNAUTHORIZED"}),403
       return func()

@@ -73,19 +73,22 @@ def sendDelAccEmail():
         if(len(password)==0):
             return jsonify({"message":"PASSWORD CANNOT BE EMPTY"})
 
-        mycursor.execute("select USER_ID from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
+        mycursor.execute("select USER_ID,EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
         data = mycursor.fetchone()
         
         # generation of token 
-        if data:
-            mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
-            hashed_pass = mycursor.fetchone()
-            if bcrypt.checkpw(password.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
-                mycursor.execute("select USER_ID,EMAIL_ID,USERNAME from Hassle_Free_Register where username = %s",[name]) 
-                data = mycursor.fetchone()
-                sendDeleteAccountVerification(data[1],data[2])
-            else:
-                return jsonify({"message":"INVALID CREDENTIALS"}),200
+        if data :
+           if data[1]==True:
+               mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
+               hashed_pass = mycursor.fetchone()
+               if bcrypt.checkpw(password.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
+                  mycursor.execute("select USER_ID,EMAIL_ID,USERNAME from Hassle_Free_Register where username = %s",[name]) 
+                  data = mycursor.fetchone()
+                  sendDeleteAccountVerification(data[1],data[2])
+               else:
+                  return jsonify({"message":"INVALID CREDENTIALS"}),200
+           else:
+                return jsonify({"message":"ACCOUNT NOT VERIFIED"}),200
         else:
             return jsonify({"message":"USER DOES NOT EXIST"}),401
         return jsonify({"message" : "EMAIL SUCCESSFULLY SENT"}),201
