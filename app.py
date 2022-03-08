@@ -17,7 +17,7 @@ from cryptography.hazmat.backends import default_backend
 from Auth.authentication import auth_blueprint
 from Delete.delete import delete_blueprint
 from Insert.insert import insert_blueprint
-from Auth.email import email_blueprint
+from Auth.e_mail import email_blueprint
 from Auth.authhelper import check_for_token_email
 
 

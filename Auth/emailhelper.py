@@ -20,7 +20,7 @@ def sendEmailVerification(inputEmail,inputUsername):
             if(STATUS[0]==False):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
-                link = "http://192.168.0.104:5000/auth/verifyemail?t="+token.decode('utf-8')
+                link = "https://hassle-free.herokuapp.com/auth/verifyemail?t="+token.decode('utf-8')
                 subject = 'ACCOUNT VERIFICATION REQUEST INTIATION - HASSLE FREE'
                 body = "Hello {username},\nThanks for registering with Hassle Free. \n WE BELIEVE IN PRIVACY\n Click here to verfiy your account : {verificationlink}".format(username = str(inputUsername) , verificationlink=str(link))
                 msg = f'SUBJECT:{subject}\n\n{body}'
@@ -36,11 +36,12 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
         try:
             mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = inputUsername))
             STATUS = mycursor.fetchone()
+            print(STATUS)
             if(STATUS[0]==True):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
                 print(token)
-                link = "http://192.168.0.104:5000/delete/deleteaccount?t="+token.decode('utf-8')
+                link = "https://hassle-free.herokuapp.com/delete/deleteaccount?t="+token.decode('utf-8')
                 subject = 'ACCOUNT DELETION REQUEST INTIATION - HASSLE FREE'
                 body = "Hello {username},\nWe are sad to see you gooo . :( \n WE BELIEVE IN PRIVACY\n Click here to delete your account : {deletionlink}".format(username = str(inputUsername) , deletionlink=str(link))
                 msg = f'SUBJECT:{subject}\n\n{body}'
@@ -50,3 +51,12 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
         except Exception as error:
             return jsonify({"message":"error"}),400
 
+def login(inputEmail):
+    from app import mycursor
+    with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
+        try:           
+            smtp.login(str("hasslefreenoreply@gmail.com"),str("tH!sIsN0tpA55w03d"))
+            smtp.sendmail("hasslefreenoreply@gmail.com",inputEmail,"HELLO")
+            return "OK"
+        except Exception as error:
+            return jsonify({"message":"error"}),400
