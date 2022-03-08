@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from flask import request ,jsonify
 import jwt
 import datetime
-from functools import wraps
 load_dotenv()
 
 EMAIL_ADDRESS = os.getenv('EMAILADDRESS')
@@ -12,9 +11,10 @@ EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
 SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
 
 def sendEmailVerification(inputEmail,inputUsername):
-    from app import mycursor
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         try:
+            from app import mycursor
+            
             mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = inputUsername))
             STATUS = mycursor.fetchone()
             if(STATUS[0]==False):
@@ -51,12 +51,4 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
         except Exception as error:
             return jsonify({"message":"error"}),400
 
-def login(inputEmail):
-    from app import mycursor
-    with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
-        try:           
-            smtp.login(str("hasslefreenoreply@gmail.com"),str("tH!sIsN0tpA55w03d"))
-            smtp.sendmail("hasslefreenoreply@gmail.com",inputEmail,"HELLO")
-            return "OK"
-        except Exception as error:
-            return jsonify({"message":"error"}),400
+sendEmailVerification("rajputsiddharth18@gmail.com","Siddharth")
