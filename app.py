@@ -29,40 +29,40 @@ app.register_blueprint(email_blueprint,url_prefix='/emailauth')
 load_dotenv()
 
 # UNCOMMENT FOR SERVER
-# DB_HOST = os.getenv('HEROKUDBHOST')
-# DB_NAME = os.getenv('HEROKUDATABASE')
-# DB_USER = os.getenv('HEROKUDBUSER')
-# DB_PASSWORD = os.getenv('HEROKUDBPASSWORD')
-# DB_PORT = os.getenv('HEROKUPORT')
-# SECRET_PASSWORD = os.getenv('SECRETKEY')
-# SALTING_KEY = os.getenv('SALTING')
-# EMAILADDRESS = os.getenv('EMAILADDRESS')
-# EMAILPASSWORD = os.getenv('EMAILPASSWORD')
-# mydb = psycopg2.connect(
-#    host = DB_HOST ,
-#    dbname = DB_NAME,
-#    user = DB_USER,
-#    password = DB_PASSWORD,
-#    port = DB_PORT
-# )
-
-# UNCOMMENT FOR LOCAL
-DB_PASSWORD = os.getenv('PASSWORD')
+DB_HOST = os.getenv('HEROKUDBHOST')
+DB_NAME = os.getenv('HEROKUDATABASE')
+DB_USER = os.getenv('HEROKUDBUSER')
+DB_PASSWORD = os.getenv('HEROKUDBPASSWORD')
+DB_PORT = os.getenv('HEROKUPORT')
 SECRET_PASSWORD = os.getenv('SECRETKEY')
 SALTING_KEY = os.getenv('SALTING')
-DB_USERNAME = os.getenv('DBUSERNAME')
-DATABASE = os.getenv('DATABASE')
-EMAIL_ADDRESS = os.getenv('EMAILADDRESS')
-EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
-SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
-
+EMAILADDRESS = os.getenv('EMAILADDRESS')
+EMAILPASSWORD = os.getenv('EMAILPASSWORD')
 mydb = psycopg2.connect(
-   host = "localhost" ,
-   dbname = DATABASE,
-   user = DB_USERNAME,
+   host = DB_HOST ,
+   dbname = DB_NAME,
+   user = DB_USER,
    password = DB_PASSWORD,
-   port = 5432
+   port = DB_PORT
 )
+
+# UNCOMMENT FOR LOCAL
+# DB_PASSWORD = os.getenv('PASSWORD')
+# SECRET_PASSWORD = os.getenv('SECRETKEY')
+# SALTING_KEY = os.getenv('SALTING')
+# DB_USERNAME = os.getenv('DBUSERNAME')
+# DATABASE = os.getenv('DATABASE')
+# EMAIL_ADDRESS = os.getenv('EMAILADDRESS')
+# EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
+# SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
+
+# mydb = psycopg2.connect(
+#    host = "localhost" ,
+#    dbname = DATABASE,
+#    user = DB_USERNAME,
+#    password = DB_PASSWORD,
+#    port = 5432
+# )
 
 mycursor = mydb.cursor()
 # mycursor.execute("use Hassle_Free;")
@@ -421,8 +421,8 @@ def createtable():
 @app.route('/extra' ,methods =['POST'])
 def extra():
    try:
-      # mycursor.execute("create table hassle_free_register(USER_ID SERIAL PRIMARY KEY NOT NULL, USERNAME varchar(255) NOT NULL UNIQUE ,PASSWORD varchar(255) NOT NULL,EMAIL_ID varchar(255) NOT NULL UNIQUE , EMAIL_VERIFICATION boolean NOT NULL );")
-      # mydb.commit()
+      mycursor.execute("create table hassle_free_register(USER_ID SERIAL PRIMARY KEY NOT NULL, USERNAME varchar(255) NOT NULL UNIQUE ,PASSWORD varchar(255) NOT NULL,EMAIL_ID varchar(255) NOT NULL UNIQUE , EMAIL_VERIFICATION boolean NOT NULL );")
+      mydb.commit()
       return "BUNGYA BHAI TABLE AND DATABASE"
    except Exception as error:
       return jsonify(str(error)) 
