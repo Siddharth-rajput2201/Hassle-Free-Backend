@@ -421,8 +421,8 @@ def createtable():
 @app.route('/extra' ,methods =['POST'])
 def extra():
    try:
-      mycursor.execute("create table hassle_free_register(USER_ID SERIAL PRIMARY KEY NOT NULL, USERNAME varchar(255) NOT NULL UNIQUE ,PASSWORD varchar(255) NOT NULL,EMAIL_ID varchar(255) NOT NULL UNIQUE , EMAIL_VERIFICATION boolean NOT NULL );")
-      mydb.commit()
+      # mycursor.execute("create table hassle_free_register(USER_ID SERIAL PRIMARY KEY NOT NULL, USERNAME varchar(255) NOT NULL UNIQUE ,PASSWORD varchar(255) NOT NULL,EMAIL_ID varchar(255) NOT NULL UNIQUE , EMAIL_VERIFICATION boolean NOT NULL );")
+      # mydb.commit()
       return "BUNGYA BHAI TABLE AND DATABASE"
    except Exception as error:
       return jsonify(str(error)) 
