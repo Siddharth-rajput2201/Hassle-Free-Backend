@@ -15,7 +15,6 @@ def sendEmailVerification(inputEmail,inputUsername):
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         try:
             mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = inputUsername))
-            print(STATUS)
             STATUS = mycursor.fetchone()
             if(STATUS[0]==False):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
@@ -50,3 +49,12 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
                 return jsonify({"message":"ACCOUNT NOT VERIFIED"}),400 
         except Exception as error:
             return jsonify({"message":"error"}),400
+
+def test(inputEmail):
+    with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
+        try:
+            smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
+            smtp.sendmail(EMAIL_ADDRESS,inputEmail,"OK")
+        except Exception as error:
+            return jsonify({"message":"error"}),400
+

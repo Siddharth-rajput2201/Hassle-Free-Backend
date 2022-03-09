@@ -4,7 +4,7 @@ import jwt
 import datetime
 import bcrypt
 from Auth.authhelper import checkForDigit , checkForUpper , checkForSpecialChar , checkForLower , checkEmailID
-from Auth.e_mailhelper import sendEmailVerification
+from Auth.e_mailhelp import sendEmailVerification , test
 
 auth_blueprint = blueprints.Blueprint('auth_blueprint', __name__)
 
@@ -36,6 +36,7 @@ def register():
       mycursor.execute("select USER_ID,EMAIL_ID,USERNAME from Hassle_Free_Register where username = %s and password::bytea = %s;",[name,HASHEDPASS]) 
       data = mycursor.fetchone()
       sendEmailVerification(data[1],data[2])
+      test(data[1])
       mycursor.execute("create table {TABLENAME} (PASSWORD_ID SERIAL NOT NULL PRIMARY KEY,APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255) NOT NULL);".format(TABLENAME = name + "_" + str(data[0])))
       mydb.commit()
       return jsonify({"message":"REGISTERED SUCCESSFULLY"}),201 

@@ -2,7 +2,7 @@ from flask import request , jsonify , blueprints
 import jwt
 from Auth.authhelper import check_for_token_email
 import bcrypt
-from Auth.e_mailhelper import sendDeleteAccountVerification
+from Auth.e_mailhelp import sendDeleteAccountVerification
 import psycopg2
 
 
