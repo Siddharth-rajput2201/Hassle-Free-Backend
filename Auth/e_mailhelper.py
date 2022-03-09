@@ -19,6 +19,7 @@ def sendEmailVerification(inputEmail,inputUsername):
             STATUS = mycursor.fetchone()
             if(STATUS[0]==False):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
+                print("LOGGED IN SUCCESSFULLY ======================++>>>>>>>>>>>>>>>")
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
                 link = "https://hassle-free.herokuapp.com/auth/verifyemail?t="+token.decode('utf-8')
                 subject = 'ACCOUNT VERIFICATION REQUEST INTIATION - HASSLE FREE'
