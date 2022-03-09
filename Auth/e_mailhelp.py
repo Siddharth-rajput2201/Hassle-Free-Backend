@@ -17,7 +17,8 @@ def sendEmailVerification(inputEmail,inputUsername,inputEmailVerification):
             if(inputEmailVerification==False):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
-                link = "https://hassle-free.herokuapp.com/auth/verifyemail?t="+token.decode('utf-8')
+                domain = "https://hassle-free.herokuapp.com/auth/verifyemail?t="
+                link = domain + token
                 subject = 'ACCOUNT VERIFICATION REQUEST INTIATION - HASSLE FREE'
                 body = "Hello {username},\nThanks for registering with Hassle Free. \n WE BELIEVE IN PRIVACY\n Click here to verfiy your account : {verificationlink}".format(username = str(inputUsername) , verificationlink=str(link))
                 msg = f'SUBJECT:{subject}\n\n{body}'
@@ -37,8 +38,8 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
             if(STATUS[0]==True):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
-                print(token)
-                link = "https://hassle-free.herokuapp.com/delete/deleteaccount?t="+token.decode('utf-8')
+                domain = "https://hassle-free.herokuapp.com/delete/deleteaccount?t="
+                link = domain + token
                 subject = 'ACCOUNT DELETION REQUEST INTIATION - HASSLE FREE'
                 body = "Hello {username},\nWe are sad to see you gooo . :( \n WE BELIEVE IN PRIVACY\n Click here to delete your account : {deletionlink}".format(username = str(inputUsername) , deletionlink=str(link))
                 msg = f'SUBJECT:{subject}\n\n{body}'
