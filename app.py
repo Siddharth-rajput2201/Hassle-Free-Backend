@@ -38,6 +38,7 @@ SECRET_PASSWORD = os.getenv('SECRETKEY')
 SALTING_KEY = os.getenv('SALTING')
 EMAILADDRESS = os.getenv('EMAILADDRESS')
 EMAILPASSWORD = os.getenv('EMAILPASSWORD')
+SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
 mydb = psycopg2.connect(
    host = DB_HOST ,
    dbname = DB_NAME,

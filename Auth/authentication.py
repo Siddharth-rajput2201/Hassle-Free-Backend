@@ -98,8 +98,7 @@ def login():
 
 @auth_blueprint.route('/verifyemail' ,methods =['GET'])
 def verifyEmail():
-   from app import mycursor,mydb,SECRET_JWT_KEY
-   args = request.args
+   from app import mycursor,mydb,SECRET_JWT_KEY   args = request.args
    token = args.get('t')
    if not token:
       return jsonify({"message":"TOKEN MISSING"}),400
