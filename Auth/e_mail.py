@@ -8,7 +8,7 @@ email_blueprint = blueprints.Blueprint('email_blueprint', __name__)
 
 @email_blueprint.route('/resendemail' ,methods =['POST'])
 def resendEmail():
-    from app import mycursor,SECRET_PASSWORD
+    from app import mycursor
     try:
         name = request.form['USER_NAME']
         password = request.form['USER_PASSWORD']
