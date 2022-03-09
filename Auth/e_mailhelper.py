@@ -11,9 +11,9 @@ EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
 SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
 
 def sendEmailVerification(inputEmail,inputUsername):
+    from app import mycursor
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         try:
-            from app import mycursor
             mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = inputUsername))
             print(STATUS)
             STATUS = mycursor.fetchone()
@@ -50,5 +50,3 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
                 return jsonify({"message":"ACCOUNT NOT VERIFIED"}),400 
         except Exception as error:
             return jsonify({"message":"error"}),400
-
-# sendEmailVerification("rajputsiddharth18@gmail.com","Siddharth")

@@ -4,7 +4,7 @@ import jwt
 import datetime
 import bcrypt
 from Auth.authhelper import checkForDigit , checkForUpper , checkForSpecialChar , checkForLower , checkEmailID
-from Auth.emailhelper import sendEmailVerification
+from Auth.e_mailhelper import sendEmailVerification
 
 auth_blueprint = blueprints.Blueprint('auth_blueprint', __name__)
 
