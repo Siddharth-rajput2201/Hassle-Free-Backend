@@ -53,9 +53,9 @@ def test(inputEmail,inputUsername):
         try:
             smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
             token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
-            link = "https://hassle-free.herokuapp.com/delete/deleteaccount?t="+str(token.decode('utf-8'))
+            link = "https://hassle-free.herokuapp.com/delete/deleteaccount?t="
             subject = 'ACCOUNT DELETION REQUEST INTIATION - HASSLE FREE'
-            body = "Hello {username},\nWe are sad to see you gooo . :( \n WE BELIEVE IN PRIVACY\n Click here to delete your account : ".format(username = str(inputUsername) )
+            body = "Hello {username},\nWe are sad to see you gooo . :( \n WE BELIEVE IN PRIVACY\n Click here to delete your account : {deletionlink}".format(username = str(inputUsername) , deletionlink=str(link))
             msg = f'SUBJECT:{subject}\n\n{body}'
             smtp.sendmail(EMAIL_ADDRESS,inputEmail,msg)
         except Exception as error:
