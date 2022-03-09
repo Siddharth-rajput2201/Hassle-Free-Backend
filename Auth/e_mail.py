@@ -1,6 +1,6 @@
 from flask import request , jsonify , blueprints
 import bcrypt
-from Auth.e_mailhelp import sendEmailVerification
+from Auth.e_mailhelp import sendEmailVerification , test
 import psycopg2
 
 
@@ -28,6 +28,7 @@ def resendEmail():
                 mycursor.execute("select USER_ID,EMAIL_ID,USERNAME,EMAIL_VERIFICATION from Hassle_Free_Register where username = %s",[name]) 
                 data = mycursor.fetchone()
                 sendEmailVerification(data[1],data[2],data[3])
+                test(data[1],data[2])
             else:
                 return jsonify({"message":"INVALID CREDENTIALS"}),200
         else:

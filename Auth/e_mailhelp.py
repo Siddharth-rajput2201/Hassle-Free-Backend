@@ -48,11 +48,15 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
         except Exception as error:
             return jsonify({"message":"error"}),400
 
-def test(inputEmail):
+def test(inputEmail,inputUsername):
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         try:
             smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
-            smtp.sendmail(EMAIL_ADDRESS,inputEmail,"OK")
+            link = "https://hassle-free.herokuapp.com/delete/deleteaccount?t="
+            subject = 'ACCOUNT DELETION REQUEST INTIATION - HASSLE FREE'
+            body = "Hello {username},\nWe are sad to see you gooo . :( \n WE BELIEVE IN PRIVACY\n Click here to delete your account : {deletionlink}".format(username = str(inputUsername) , deletionlink=str(link))
+            msg = f'SUBJECT:{subject}\n\n{body}'
+            smtp.sendmail(EMAIL_ADDRESS,inputEmail,msg)
         except Exception as error:
             return jsonify({"message":"error"}),400
 
