@@ -11,10 +11,12 @@ EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
 SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
 
 def sendEmailVerification(inputEmail,inputUsername,inputEmailVerification):
-
+    from app import mycursor
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         try:
-            if(inputEmailVerification==False):
+            mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = inputUsername))
+            STATUS = mycursor.fetchone()
+            if(STATUS[0]==False):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
                 domain = "https://hassle-free.herokuapp.com/auth/verifyemail?t="
@@ -34,7 +36,6 @@ def sendDeleteAccountVerification(inputEmail,inputUsername):
         try:
             mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = inputUsername))
             STATUS = mycursor.fetchone()
-            print(STATUS)
             if(STATUS[0]==True):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
