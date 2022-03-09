@@ -25,9 +25,9 @@ def resendEmail():
             mycursor.execute("select PASSWORD from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = name))
             hashed_pass = mycursor.fetchone()
             if bcrypt.checkpw(password.encode('utf-8'),str(hashed_pass[0]).encode('utf-8')):
-                mycursor.execute("select USER_ID,EMAIL_ID,USERNAME from Hassle_Free_Register where username = %s",[name]) 
+                mycursor.execute("select USER_ID,EMAIL_ID,USERNAME,EMAIL_VERIFICATION from Hassle_Free_Register where username = %s",[name]) 
                 data = mycursor.fetchone()
-                sendEmailVerification(data[1],data[2])
+                sendEmailVerification(data[1],data[2],data[3])
             else:
                 return jsonify({"message":"INVALID CREDENTIALS"}),200
         else:

@@ -10,13 +10,11 @@ EMAIL_ADDRESS = os.getenv('EMAILADDRESS')
 EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
 SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
 
-def sendEmailVerification(inputEmail,inputUsername):
-    from app import mycursor
+def sendEmailVerification(inputEmail,inputUsername,inputEmailVerification):
+
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         try:
-            mycursor.execute("select EMAIL_VERIFICATION from Hassle_Free_Register where USERNAME = '{USER_NAME}';".format(USER_NAME = inputUsername))
-            STATUS = mycursor.fetchone()
-            if(STATUS[0]==False):
+            if(inputEmailVerification==False):
                 smtp.login(str(EMAIL_ADDRESS),str(EMAIL_PASSWORD))
                 token = jwt.encode({"username":inputUsername,"exp":datetime.datetime.utcnow() + datetime.timedelta(minutes=5)},SECRET_JWT_KEY, algorithm="HS256")
                 link = "https://hassle-free.herokuapp.com/auth/verifyemail?t="+token.decode('utf-8')
