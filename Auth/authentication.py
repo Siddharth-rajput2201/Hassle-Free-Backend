@@ -35,8 +35,11 @@ def register():
       mycursor.execute("insert into hassle_free_register (USERNAME,PASSWORD,EMAIL_ID,EMAIL_VERIFICATION) values(%s,%s,%s,%s);",[name,HASHEDPASS.decode('utf-8'),email_id,False]) 
       mycursor.execute("select USER_ID,EMAIL_ID,USERNAME,EMAIL_VERIFICATION from Hassle_Free_Register where username = %s and password::bytea = %s;",[name,HASHEDPASS]) 
       data = mycursor.fetchone()
-      sendEmailVerification(data[1],data[2],data[3])
-      # test(data[1],data[2])
+      if(data[3] == False):
+         sendEmailVerification(data[1],data[2])
+      else:
+         return jsonify({"message":"ACCOUNT ALREADY VERIFIED"})
+      sendEmailVerification(data[1],data[2])
       mycursor.execute("create table {TABLENAME} (PASSWORD_ID SERIAL NOT NULL PRIMARY KEY,APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255) NOT NULL);".format(TABLENAME = name + "_" + str(data[0])))
       mydb.commit()
       return jsonify({"message":"REGISTERED SUCCESSFULLY"}),201 

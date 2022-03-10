@@ -10,7 +10,7 @@ EMAIL_ADDRESS = os.getenv('EMAILADDRESS')
 EMAIL_PASSWORD = os.getenv('EMAILPASSWORD')
 SECRET_JWT_KEY = os.getenv('SECRETEMAILJWTKEY')
 
-def sendEmailVerification(inputEmail,inputUsername,inputEmailVerification):
+def sendEmailVerification(inputEmail,inputUsername):
     from app import mycursor
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         try:
