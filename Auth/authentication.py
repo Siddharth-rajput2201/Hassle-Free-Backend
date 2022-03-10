@@ -39,7 +39,6 @@ def register():
          sendEmailVerification(data[1],data[2])
       else:
          return jsonify({"message":"ACCOUNT ALREADY VERIFIED"})
-      sendEmailVerification(data[1],data[2])
       mycursor.execute("create table {TABLENAME} (PASSWORD_ID SERIAL NOT NULL PRIMARY KEY,APP_NAME varchar(255) NOT NULL, APP_USERNAME varchar(255) NOT NULL , APP_PASSWORD varchar(255) NOT NULL);".format(TABLENAME = name + "_" + str(data[0])))
       mydb.commit()
       return jsonify({"message":"REGISTERED SUCCESSFULLY"}),201 
