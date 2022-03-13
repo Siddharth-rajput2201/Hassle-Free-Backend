@@ -1,5 +1,5 @@
 import psycopg2
-from flask import request , jsonify , blueprints
+from flask import render_template, request , jsonify , blueprints
 import jwt
 import datetime
 import bcrypt
@@ -112,7 +112,7 @@ def verifyEmail():
       if(STATUS[0]==False):
          mycursor.execute("update hassle_free_register set email_verification = True where username = '{USER_NAME}';".format(USER_NAME = data['username']))
          mydb.commit()
-         return jsonify({"message":"EMAIL VERIFIED"}),201
+         return render_template('success.html'),201
       else:
          return jsonify({"message":"EMAIL ALREADY VERIFIED"}),201
    except psycopg2.Error as error:

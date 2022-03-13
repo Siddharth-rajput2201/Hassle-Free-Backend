@@ -1,6 +1,6 @@
-from flask import request , jsonify , blueprints
+from flask import request , jsonify , blueprints , render_template
 import bcrypt
-from Auth.e_mailhelp import sendEmailVerification , test
+from Auth.e_mailhelp import sendEmailVerification 
 import psycopg2
 
 

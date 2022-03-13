@@ -1,7 +1,7 @@
 import smtplib
 import os
 from dotenv import load_dotenv
-from flask import request ,jsonify
+from flask import jsonify 
 import jwt
 import datetime
 load_dotenv()
