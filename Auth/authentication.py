@@ -84,7 +84,7 @@ def login():
             return jsonify({"message":"ACCOUNT NOT VERIFIED"}),401
       else:
          return jsonify({"message":"USER DOES NOT EXIST"}),400
-      return jsonify({"token" : token.decode('utf-8')})
+      return jsonify({"token" : token})
    except TypeError as error:
       print(error)
       return jsonify({"message":"error"}),400
