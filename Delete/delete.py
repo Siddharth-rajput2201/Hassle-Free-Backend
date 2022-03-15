@@ -1,4 +1,4 @@
-from flask import request , jsonify , blueprints
+from flask import render_template, request , jsonify , blueprints
 import jwt
 from Auth.authhelper import check_for_token_email
 import bcrypt
@@ -49,16 +49,16 @@ def deleteaccount():
          mycursor.execute("delete from hassle_free_register where username = '{USER_NAME}';".format(USER_NAME = tokendata['username']))
          mycursor.execute("drop table {TABLENAME};".format(TABLENAME = tokendata['username'] + "_" + str(DATA[1])))
          mydb.commit()
-         return jsonify({"message":"ACCOUNT DELETED SUCCESSFULLY"}),201
+         return render_template('deletesuccess.html'),201
       else:
-         return jsonify({"message":"EMAIL NOT VERIFIED"}),200
+         return render_template('emailnotverified.html'),200
    except psycopg2.Error as error:
       print(error)
-      return jsonify({"message":"error"}),403
+      return render_template('error.html'),403
    except Exception as error:
       return str(error)
    except:
-      return jsonify({"message":"UNAUTHORIZED"}),403
+      return render_template('error.html'),403
 
 
 

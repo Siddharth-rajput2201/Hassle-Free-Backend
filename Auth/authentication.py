@@ -1,6 +1,7 @@
 import psycopg2
 from flask import render_template, request , jsonify , blueprints
 import jwt
+from jwt.exceptions import ExpiredSignatureError
 import datetime
 import bcrypt
 from Auth.authhelper import checkForDigit , checkForUpper , checkForSpecialChar , checkForLower , checkEmailID
@@ -114,10 +115,12 @@ def verifyEmail():
          mydb.commit()
          return render_template('success.html'),201
       else:
-         return jsonify({"message":"EMAIL ALREADY VERIFIED"}),201
+         return render_template('alreadyverified.html'),201
    except psycopg2.Error as error:
       print(error)
-      return jsonify({"message":"error"}),403
+      return render_template('error.html'),403
+   except ExpiredSignatureError as error:
+      return render_template('timexpired.html'),403
    except:
-      return jsonify({"message":"UNAUTHORIZED"}),403
+      return render_template('error.html'),403
    
