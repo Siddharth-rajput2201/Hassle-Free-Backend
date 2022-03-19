@@ -4,8 +4,8 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError
 import datetime
 import bcrypt
-from Auth.authhelper import checkForDigit , checkForUpper , checkForSpecialChar , checkForLower , checkEmailID
-from Auth.e_mailhelp import sendEmailVerification , test
+from Auth.authhelper import check_for_token_email, checkForDigit , checkForUpper , checkForSpecialChar , checkForLower , checkEmailID
+from Auth.e_mailhelp import sendEmailVerification 
 
 auth_blueprint = blueprints.Blueprint('auth_blueprint', __name__)
 
@@ -123,4 +123,8 @@ def verifyEmail():
       return render_template('timexpired.html'),403
    except:
       return render_template('error.html'),403
-   
+
+@auth_blueprint.route('/verify' ,methods =['POST'])
+@check_for_token_email
+def valid():
+   return jsonify({"message":"AUTHENTICATED"}),200

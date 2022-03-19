@@ -390,10 +390,10 @@ def fetch_all_data():
 #       print(error)
 #       return jsonify({"message":"error"}), 404 
       
-@app.route('/verify' ,methods =['POST'])
-@check_for_token_email
-def valid():
-   return jsonify({"message":"AUTHENTICATED"}),200
+# @app.route('/verify' ,methods =['POST'])
+# @check_for_token_email
+# def valid():
+#    return jsonify({"message":"AUTHENTICATED"}),200
 
 @app.route('/token' ,methods =['POST'])
 def generatetoken():
