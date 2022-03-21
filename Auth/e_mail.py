@@ -30,7 +30,7 @@ def resendEmail():
                 if(data[3] == False):
                     sendEmailVerification(data[1],data[2])
                 else:
-                    return jsonify({"message":"ACCOUNT ALREADY VERIFIED"})
+                    return jsonify({"message":"ACCOUNT ALREADY VERIFIED"}),200
                 # test(data[1],data[2])
             else:
                 return jsonify({"message":"INVALID CREDENTIALS"}),200
