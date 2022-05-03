@@ -60,7 +60,7 @@ def register():
 
 @auth_blueprint.route('/login' ,methods =['POST'])
 def login():
-   from app import mycursor,SECRET_PASSWORD
+   from app import mycursor,SECRET_PASSWORD,mydb
    try:
       name = request.form['USER_NAME']
       password = request.form['USER_PASSWORD']
@@ -88,13 +88,14 @@ def login():
       return jsonify({"token" : token})
    except TypeError as error:
       print(error)
-      return jsonify({"message":"error"}),400
+      return jsonify({"message":"type error"}),400
    except ValueError as error:
       print(error)
-      return jsonify({"message":"error"}),403
+      return jsonify({"message":"value error"}),403
    except psycopg2.Error as error:
+      mydb.rollback()
       print(error)
-      return jsonify({"message":"error"}),403
+      return jsonify({"message":"database error"}),403
    except Exception as error:
       print(error)
       return jsonify({"message":"error"}),403
