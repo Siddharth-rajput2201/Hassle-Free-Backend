@@ -88,14 +88,14 @@ def login():
       return jsonify({"token" : token})
    except TypeError as error:
       print(error)
-      return jsonify({"message":"type error"}),400
+      return jsonify({"message":"error"}),400
    except ValueError as error:
       print(error)
-      return jsonify({"message":"value error"}),403
+      return jsonify({"message":"error"}),403
    except psycopg2.Error as error:
       mydb.rollback()
       print(error)
-      return jsonify({"message":"database error"}),403
+      return jsonify({"message":"error"}),403
    except Exception as error:
       print(error)
       return jsonify({"message":"error"}),403

@@ -3,6 +3,7 @@ import jwt
 from Auth.authhelper import check_for_token_email
 import bcrypt
 from Auth.e_mailhelp import sendDeleteAccountVerification
+from jwt.exceptions import ExpiredSignatureError
 import psycopg2
 
 
@@ -55,6 +56,8 @@ def deleteaccount():
    except psycopg2.Error as error:
       print(error)
       return render_template('error.html'),403
+   except ExpiredSignatureError as error:
+      return render_template('timexpired.html'),403
    except Exception as error:
       return str(error)
    except:
