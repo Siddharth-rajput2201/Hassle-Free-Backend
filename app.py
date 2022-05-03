@@ -6,23 +6,16 @@ from dotenv import load_dotenv
 import os
 from flask import Flask, render_template, request , jsonify
 import jwt
-import datetime
-import bcrypt
-from cryptography.fernet import Fernet
-import base64
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.backends import default_backend
 from Auth.authentication import auth_blueprint
 from Delete.delete import delete_blueprint
 from Insert.insert import insert_blueprint
 from Auth.e_mail import email_blueprint
 from Update.update import update_blueprint
 from Data.data import data_blueprint
-from Auth.authhelper import check_for_token_email
-
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.register_blueprint(auth_blueprint,url_prefix='/auth')
 app.register_blueprint(delete_blueprint,url_prefix='/delete')
 app.register_blueprint(insert_blueprint,url_prefix='/insert')

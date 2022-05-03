@@ -10,6 +10,7 @@ import psycopg2
 delete_blueprint = blueprints.Blueprint('delete_blueprint',__name__)
 
 @delete_blueprint.route('/deletepass' ,methods =['DELETE'])
+
 @check_for_token_email
 def deletepasswords():
    from app import mycursor,mydb,SECRET_PASSWORD,psycopg2
